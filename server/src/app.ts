@@ -8,7 +8,7 @@ app.use(express.json())
 
 
 app.get("/", (req, res) => {
-    res.send("Server is running (Hello)")
+    res.send("Server is running")
 })
 
 export default app
