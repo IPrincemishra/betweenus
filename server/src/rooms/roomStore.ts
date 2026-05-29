@@ -12,7 +12,7 @@ export const createRoom = (roomId: string, ownerUsername: string) => {
         ownerUsername,
         users: [],
         maxUsers: ROOM_LIMIT,
-        reservedSlot: [],
+        reservedSlots: [],
         createdAt: Date.now(),
         lastActivity: Date.now()
     }
@@ -47,7 +47,7 @@ export const reserveSlot = (roomId: string, username: string) => {
 
     if (!room) return
 
-    room.reservedSlot.push({
+    room.reservedSlots.push({
         username,
         expiresAt: Date.now() + RECONNECT_WINDOW
     })
@@ -63,17 +63,25 @@ export const canJoinReservedSlot = (roomId: string, username: string) => {
 
     const now = Date.now()
 
-    room.reservedSlot = room.reservedSlot.filter(slot => slot.expiresAt > now)
+    room.reservedSlots = room.reservedSlots.filter(slot => slot.expiresAt > now)
 
-    const reserved = room.reservedSlot.find(
+    const reserved = room.reservedSlots.find(
         slot => slot.username.toLowerCase() === username.toLowerCase()
     )
 
     if (!reserved) {
-        return room.users.length < room.maxUsers;
+        const activeUsers = room.users.length;
+
+        const reservedSeats = room.reservedSlots.length;
+
+        const occupiedSeats = activeUsers + reservedSeats;
+
+        return (
+            occupiedSeats < room.maxUsers
+        );
     }
 
-    room.reservedSlot = room.reservedSlot.filter(
+    room.reservedSlots = room.reservedSlots.filter(
         slot => slot.username.toLowerCase() !== username.toLowerCase()
     )
 

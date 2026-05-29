@@ -30,4 +30,25 @@ app.get("/debug", (req, res) => {
     })
 })
 
+app.get("/rooms/:roomId", (req, res) => {
+
+    const room = getRoom(req.params.roomId);
+
+    if (!room) {
+        return res.status(404).json({
+
+            exists: false
+        });
+    }
+
+    const available = room.users.length < room.maxUsers;
+
+    return res.json({
+        exists: true,
+        available,
+        users: room.users.length
+    });
+}
+);
+
 export default app

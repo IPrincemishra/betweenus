@@ -4,22 +4,23 @@ import { addUserToRoom, canJoinReservedSlot, createRoom, getRoom, removeUserFrom
 import { generateRoomId } from "../utils/generateRoomId";
 import { APP_CONFIG } from "../constants/config";
 import { clearSocketLimits, isRateLimited } from "../utils/rateLimiter";
+import { SOCKET_EVENTS } from "../constants/events";
 
 export const registerSocketHandlers = (socket: Socket) => {
     console.log("User connected: ", socket.id);
 
-    socket.on("set_username", (username: string) => {
+    socket.on(SOCKET_EVENTS.SET_USERNAME, (username: string) => {
 
         const trimmedUsername = username.trim()
 
         if (!trimmedUsername || trimmedUsername.length > APP_CONFIG.MAX_USERNAME_LENGTH) {
-            socket.emit("username_error", `Username must be between 1 and ${APP_CONFIG.MAX_USERNAME_LENGTH}`)
+            socket.emit(SOCKET_EVENTS.USERNAME_ERROR, `Username must be between 1 and ${APP_CONFIG.MAX_USERNAME_LENGTH}`)
             socket.disconnect()
             return
         }
 
         if (isUsernameTaken(trimmedUsername)) {
-            socket.emit("username_error", "Username already taken")
+            socket.emit(SOCKET_EVENTS.USERNAME_ERROR, "Username already taken")
             socket.disconnect()
             return
         }
@@ -30,11 +31,11 @@ export const registerSocketHandlers = (socket: Socket) => {
             joinedAt: Date.now()
         })
 
-        socket.emit("username_success", trimmedUsername)
+        socket.emit(SOCKET_EVENTS.USERNAME_SUCCESS, trimmedUsername)
 
     })
 
-    socket.on("create_room", () => {
+    socket.on(SOCKET_EVENTS.CREATE_ROOM, () => {
 
         const user = getUser(socket.id)
 
@@ -54,10 +55,7 @@ export const registerSocketHandlers = (socket: Socket) => {
         )
 
         if (!joined) {
-            socket.emit(
-                "room_error",
-                "Unable to create room"
-            )
+            socket.emit(SOCKET_EVENTS.ROOM_ERROR, "Unable to create room")
             return
         }
 
@@ -65,19 +63,19 @@ export const registerSocketHandlers = (socket: Socket) => {
 
         socket.join(roomId)
 
-        socket.emit("room_created", {
+        socket.emit(SOCKET_EVENTS.ROOM_CREATED, {
             roomId,
             inviteLink: `${APP_CONFIG.DEEP_LINK_PREFIX}${roomId}`
         })
 
     })
 
-    socket.on("join_room", (roomId: string) => {
+    socket.on(SOCKET_EVENTS.JOIN_ROOM, (roomId: string) => {
 
         const room = getRoom(roomId)
 
         if (!room) {
-            socket.emit("room_error", "Room not found")
+            socket.emit(SOCKET_EVENTS.ROOM_ERROR, "Room not found")
             return
         }
 
@@ -87,13 +85,13 @@ export const registerSocketHandlers = (socket: Socket) => {
 
         const allowed = canJoinReservedSlot(roomId, user.username)
         if (!allowed) {
-            socket.emit("room_error", "Room unavailable")
+            socket.emit(SOCKET_EVENTS.ROOM_ERROR, "Room unavailable")
             return
         }
 
         const joined = addUserToRoom(roomId, socket.id)
         if (!joined) {
-            socket.emit("room_error", "Room Full")
+            socket.emit(SOCKET_EVENTS.ROOM_ERROR, "Room Full")
             return
         }
 
@@ -101,49 +99,45 @@ export const registerSocketHandlers = (socket: Socket) => {
 
         socket.join(roomId)
 
-        socket.emit("room_joined", roomId)
+        socket.emit(SOCKET_EVENTS.ROOM_JOINED, roomId)
 
-        socket.to(roomId).emit("user_online")
+        socket.to(roomId).emit(SOCKET_EVENTS.USER_ONLINE)
     })
 
-    socket.on("send_message", ({ roomId, message }) => {
+    socket.on(SOCKET_EVENTS.SEND_MESSAGE, ({ roomId, message }) => {
         const user = getUser(socket.id)
         if (!user) return
 
-        const limited = isRateLimited(socket.id, "message", 500)
+        const limited = isRateLimited(socket.id, SOCKET_EVENTS.SEND_MESSAGE, 500)
         if (limited) {
-            socket.emit("message_error", "Too Fast")
+            socket.emit(SOCKET_EVENTS.MESSAGE_ERROR, "Too fast")
             return
         }
 
         const trimmedMessage = message?.trim();
 
         if (!trimmedMessage || trimmedMessage.length > APP_CONFIG.MAX_MESSAGE_LENGTH) {
-            socket.emit("message_error", `Message limit: ${APP_CONFIG.MAX_MESSAGE_LENGTH}`)
+            socket.emit(SOCKET_EVENTS.MESSAGE_ERROR, `Message limit: ${APP_CONFIG.MAX_MESSAGE_LENGTH}`)
             return
         }
 
-        socket.to(roomId).emit("receive_message", {
+        socket.to(roomId).emit(SOCKET_EVENTS.RECEIVE_MESSAGE, {
             username: user.username,
             message: trimmedMessage,
             timestamp: Date.now()
         })
     })
 
-    socket.on("typing_start", (roomId: string) => {
+    socket.on(SOCKET_EVENTS.TYPING_START, (roomId: string) => {
 
-        const limited = isRateLimited(socket.id, "typing", 300)
+        const limited = isRateLimited(socket.id, SOCKET_EVENTS.TYPING_START, 300)
         if (limited) return
 
-        socket.to(roomId).emit(
-            "typing_start"
-        )
+        socket.to(roomId).emit(SOCKET_EVENTS.TYPING_START)
     })
 
-    socket.on("typing_stop", (roomId: string) => {
-        socket.to(roomId).emit(
-            "typing_stop"
-        )
+    socket.on(SOCKET_EVENTS.TYPING_STOP, (roomId: string) => {
+        socket.to(roomId).emit(SOCKET_EVENTS.TYPING_STOP)
     })
 
     socket.on("disconnecting", () => {
@@ -154,7 +148,7 @@ export const registerSocketHandlers = (socket: Socket) => {
             reserveSlot(user.roomId, user.username)
             removeUserFromRoom(user.roomId, socket.id)
 
-            socket.to(user.roomId).emit("user_offline")
+            socket.to(user.roomId).emit(SOCKET_EVENTS.USER_OFFLINE)
         }
     })
 
