@@ -1,13 +1,21 @@
-import { Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import "../global.css"
+import "../global.css";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
+
   return (
-    <SafeAreaView className="bg-red-500 h-44">
-      <View className="bg-black">
-        <Text className="text-white"> Yo </Text>
-      </View>
-    </SafeAreaView>
-  );
+    <SafeAreaProvider>
+      <StatusBar style="light" />
+      <Stack screenOptions={
+        {
+          headerShown: false,
+          contentStyle: {
+            backgroundColor: "#0F0F0F"
+          }
+        }
+      } />
+    </SafeAreaProvider>
+  )
 }
