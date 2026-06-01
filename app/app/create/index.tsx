@@ -5,6 +5,7 @@ import UsernameInput from "../../components/UsernameInput";
 import { socket } from "../../services/socket";
 import { SOCKET_EVENTS } from "../../constants/events";
 import { useSessionStore } from "../../stores/useSessionStore";
+import Screen from "@/components/ui/Screen";
 export default function CreateScreen() {
 
     const [username, setUsername] = useState("");
@@ -83,23 +84,24 @@ export default function CreateScreen() {
     };
 
     return (
-
-        <View className="flex-1 bg-zinc-950 px-6 justify-center gap-6">
-            <Text className="text-white text-3xl font-bold">
-                Create Chat
-            </Text>
-            <UsernameInput
-                value={username}
-                onChange={setUsername}
-            />
-            <Pressable
-                className="bg-white rounded-2xl p-5"
-                onPress={createRoom}
-            >
-                <Text className="text-center font-semibold">
-                    Create Room
+        <Screen>
+            <View className="flex-1  px-6 justify-center gap-6">
+                <Text className="text-white text-3xl font-bold">
+                    Create Chat
                 </Text>
-            </Pressable>
-        </View>
+                <UsernameInput
+                    value={username}
+                    onChange={setUsername}
+                />
+                <Pressable
+                    className="bg-white rounded-2xl p-5"
+                    onPress={createRoom}
+                >
+                    <Text className="text-center font-semibold">
+                        Create Room
+                    </Text>
+                </Pressable>
+            </View>
+        </Screen>
     )
 }
