@@ -1,3 +1,4 @@
+import { COLORS } from "@/constants/colors";
 import { View } from "react-native";
 
 type Props = {
@@ -7,7 +8,11 @@ type Props = {
 export default function Screen({ children }: Props) {
 
     return (
-        <View className="flex-1 bg-[#0A0A0A] px-6"        >
+        <View style={{
+            flex: 1,
+            backgroundColor: COLORS.background,
+            paddingHorizontal: 24
+        }}>
             {children}
         </View>
     )

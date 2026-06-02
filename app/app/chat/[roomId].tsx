@@ -1,5 +1,6 @@
 import ChatBubble from "@/components/chat/ChatBubble";
 import ChatHeader from "@/components/chat/ChatHeader";
+import { COLORS } from "@/constants/colors";
 import { SOCKET_EVENTS } from "@/constants/events";
 import { socket } from "@/services/socket";
 import { useLocalSearchParams } from "expo-router";
@@ -19,9 +20,12 @@ export default function ChatScreen() {
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [isTyping, setIsTyping] = useState(false)
-    const [online, setOnline] = useState(false)
+    const [memberCount, setMemberCount] = useState(1);
+    const [typingSent, setTypingSent] = useState(false)
 
     const flatListRef = useRef<FlatList>(null);
+
+    const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
         const receive = (data: Message) => {
@@ -36,12 +40,12 @@ export default function ChatScreen() {
             setIsTyping(false)
         }
 
-        const userOnline = () => {
-            setOnline(true)
+        const userOnline = (count: number) => {
+            setMemberCount(count)
         }
 
-        const userOffline = () => {
-            setOnline(false)
+        const userOffline = (count: number) => {
+            setMemberCount(count)
         }
 
         socket.on(SOCKET_EVENTS.RECEIVE_MESSAGE, receive);
@@ -91,16 +95,36 @@ export default function ChatScreen() {
         setMessage("");
     };
 
+    useEffect(() => {
+        return () => {
+            if (typingTimeout.current) {
+                clearTimeout(typingTimeout.current)
+            }
+        }
+    }, [])
+
     return (
-        <SafeAreaView className="flex-1 bg-zinc-950" >
+        <SafeAreaView style={{
+            flex: 1,
+            backgroundColor: COLORS.background
+        }} >
+            <View className="absolute inset-0 overflow-hidden pointer-events-none">
+                <View
+                    className="absolute -top-[15%] -right-[15%] w-[320px] h-[320px] rounded-full opacity-[0.12] blur-[80px]"
+                    style={{ backgroundColor: COLORS.primary }}
+                />
+                <View
+                    className="absolute bottom-[15%] -left-[20%] w-[380px] h-[380px] rounded-full opacity-[0.06] blur-[100px]"
+                    style={{ backgroundColor: COLORS.primaryLight }}
+                />
+            </View>
             <KeyboardAvoidingView
                 className="flex-1"
                 behavior={Platform.OS === "ios" ? "padding" : "padding"}
                 keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
             >
-
                 <ChatHeader
-                    online={online}
+                    online={memberCount >= 2}
                     roomId={String(roomId)}
                     typing={isTyping}
                 />
@@ -124,23 +148,67 @@ export default function ChatScreen() {
                     )}
                 />
 
-                <View className="flex-row p-4 gap-3 bg-zinc-950 border-t border-zinc-900">
+                <View className="flex-row p-4 gap-3 items-center"
+
+                >
                     <TextInput
                         value={message}
                         onChangeText={(text) => {
-                            setMessage(text)
-                            socket.emit(SOCKET_EVENTS.TYPING_START, roomId)
+                            setMessage(text);
+                            const trimmed = text.trim();
+
+                            if (trimmed.length === 0) {
+                                socket.emit(
+                                    SOCKET_EVENTS.TYPING_STOP,
+                                    roomId
+                                );
+                                setTypingSent(false);
+                                return;
+                            }
+
+                            if (!typingSent) {
+                                socket.emit(
+                                    SOCKET_EVENTS.TYPING_START,
+                                    roomId
+                                );
+                                setTypingSent(true);
+                            }
+
+                            if (typingTimeout.current) {
+                                clearTimeout(typingTimeout.current);
+                            }
+
+                            typingTimeout.current = setTimeout(() => {
+                                socket.emit(
+                                    SOCKET_EVENTS.TYPING_STOP,
+                                    roomId
+                                );
+                                setTypingSent(false);
+                            }, 1000);
+                        }}
+                        onBlur={() => {
+                            socket.emit(
+                                SOCKET_EVENTS.TYPING_STOP,
+                                roomId
+                            );
                         }}
                         placeholder="Message..."
                         placeholderTextColor={"#666"}
-                        className="flex-1 bg-zinc-900 text-white rounded-xl px-4 py-4"
+                        style={{
+                            backgroundColor: COLORS.card,
+                            borderColor: COLORS.border,
+                            color: COLORS.text
+                        }}
+                        className="flex-1 rounded-xl px-4 py-3.5 border"
                         multiline={false}
                     />
                     <Pressable
                         onPress={send}
-                        className="bg-white px-6 rounded-xl justify-center active:opacity-80"
+                        style={{ backgroundColor: COLORS.primary }}
+                        disabled={!socket.connected}
+                        className="h-[42px] px-6 rounded-xl justify-center items-center active:opacity-80"
                     >
-                        <Text className="font-semibold text-zinc-950">Send</Text>
+                        <Text className="font-semibold" style={{ color: COLORS.text }}>Send</Text>
                     </Pressable>
                 </View>
             </KeyboardAvoidingView>

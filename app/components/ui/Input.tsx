@@ -1,3 +1,4 @@
+import { COLORS } from "@/constants/colors";
 import { TextInput } from "react-native";
 
 type Props = {
@@ -13,8 +14,16 @@ export default function Input({ value, onChange, placeholder }: Props) {
             value={value}
             onChangeText={onChange}
             placeholder={placeholder}
-            placeholderTextColor="#777"
-            className="bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-4 text-white"
+            placeholderTextColor={COLORS.muted}
+            style={{
+                backgroundColor: COLORS.surface,
+                borderWidth: 1,
+                borderColor: COLORS.border,
+                borderRadius: 18,
+                paddingHorizontal: 20,
+                paddingVertical: 16,
+                color: COLORS.text
+            }}
         />
     )
 }

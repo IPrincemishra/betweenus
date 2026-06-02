@@ -4,12 +4,13 @@ import { router } from "expo-router";
 import { Pressable, Share, Text, View } from "react-native";
 
 type Props = {
+    username?: string;
     roomId: string;
     online: boolean;
     typing: boolean
 }
 
-export default function ChatHeader({ online, roomId, typing }: Props) {
+export default function ChatHeader({ online, roomId, typing, username }: Props) {
 
     const copyRoom = async () => {
         await Clipboard.setStringAsync(roomId)

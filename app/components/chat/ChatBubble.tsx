@@ -1,3 +1,4 @@
+import { COLORS } from "@/constants/colors";
 import { Text, View } from "react-native";
 
 type Props = {
@@ -8,13 +9,25 @@ type Props = {
 
 export default function ChatBubble({ message, username, mine }: Props) {
     return (
-        <View className={`max-w-[80%] rounded-3xl px-4 py-3 ${mine ? "self-end bg-violet-600" : "self-start bg-[#18181B]"}`}>
+        <View style={{
+            alignSelf: mine ? "flex-end" : "flex-start",
+            maxWidth: "80%",
+            padding: 14,
+            borderRadius: 24,
+            backgroundColor: mine ? COLORS.primary : COLORS.card
+        }}>
             {!mine && (
-                <Text className="text-zinc-400 text-xs mb-1">
+                <Text style={{
+                    color: COLORS.muted,
+                    fontSize: 12,
+                    marginBottom: 6
+                }}>
                     {username}
                 </Text>
             )}
-            <Text className="text-white text-base">
+            <Text style={{
+                color: COLORS.text
+            }}>
                 {message}
             </Text>
         </View>

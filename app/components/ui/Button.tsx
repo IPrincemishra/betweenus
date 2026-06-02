@@ -1,3 +1,4 @@
+import { COLORS } from "@/constants/colors";
 import { Pressable, Text } from "react-native";
 
 type Props = {
@@ -12,9 +13,19 @@ export default function Button({ title, onPress, disabled }: Props) {
         <Pressable
             onPress={onPress}
             disabled={disabled}
-            className="bg-violet-600 rounded-2xl p-5 items-center active:opacity-80"
+            style={{
+                backgroundColor: COLORS.primary,
+                borderRadius: 20,
+                padding: 18,
+                alignItems: "center",
+                opacity: disabled ? 0.5 : 1
+            }}
         >
-            <Text className="text-white font-semibold text-base"            >
+            <Text style={{
+                color: COLORS.text,
+                fontWeight: "600",
+                fontSize: 16
+            }}>
                 {title}
             </Text>
         </Pressable>

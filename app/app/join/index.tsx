@@ -1,6 +1,6 @@
 import { View, Text, TextInput, Pressable, Alert } from "react-native";
 import { useEffect, useState } from "react";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import UsernameInput from "../../components/UsernameInput";
 import { socket } from "../../services/socket";
 import { SOCKET_EVENTS } from "../../constants/events";
@@ -9,8 +9,10 @@ import { useSessionStore } from "../../stores/useSessionStore";
 
 export default function JoinScreen() {
 
+    const params = useLocalSearchParams<{ roomId?: string }>()
+
     const [username, setUsername] = useState("");
-    const [roomId, setRoomId] = useState("");
+    const [roomId, setRoomId] = useState(params.roomId ?? "");
 
     const {
         setUsername: saveUsername,
