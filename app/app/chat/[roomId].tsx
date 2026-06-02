@@ -5,8 +5,10 @@ import { SOCKET_EVENTS } from "@/constants/events";
 import { socket } from "@/services/socket";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState, useRef } from "react";
-import { FlatList, Pressable, Text, TextInput, View, KeyboardAvoidingView, Platform } from "react-native";
+import { FlatList, Pressable, Text, TextInput, View, KeyboardAvoidingView, Platform, Keyboard } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics"
+import ChatInput from "@/components/chat/ChatInput";
 
 type Message = {
     username: string;
@@ -21,15 +23,19 @@ export default function ChatScreen() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [isTyping, setIsTyping] = useState(false)
     const [memberCount, setMemberCount] = useState(1);
-    const [typingSent, setTypingSent] = useState(false)
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
 
     const flatListRef = useRef<FlatList>(null);
 
     const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
-        const receive = (data: Message) => {
+        const receive = async (data: Message) => {
             setMessages(prev => [...prev, data]);
+
+            await Haptics.impactAsync(
+                Haptics.ImpactFeedbackStyle.Light
+            )
         };
 
         const typingStart = () => {
@@ -103,24 +109,29 @@ export default function ChatScreen() {
         }
     }, [])
 
+    useEffect(() => {
+        const show = Keyboard.addListener("keyboardDidShow", () => {
+            setKeyboardVisible(true)
+        });
+
+        const hide = Keyboard.addListener("keyboardDidHide", () => {
+            setKeyboardVisible(false)
+        });
+
+        return () => {
+            show.remove();
+            hide.remove();
+        };
+    }, [])
+
     return (
-        <SafeAreaView style={{
-            flex: 1,
-            backgroundColor: COLORS.background
-        }} >
-            <View className="absolute inset-0 overflow-hidden pointer-events-none">
-                <View
-                    className="absolute -top-[15%] -right-[15%] w-[320px] h-[320px] rounded-full opacity-[0.12] blur-[80px]"
-                    style={{ backgroundColor: COLORS.primary }}
-                />
-                <View
-                    className="absolute bottom-[15%] -left-[20%] w-[380px] h-[380px] rounded-full opacity-[0.06] blur-[100px]"
-                    style={{ backgroundColor: COLORS.primaryLight }}
-                />
-            </View>
+        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={["top", 'bottom']}>
             <KeyboardAvoidingView
-                className="flex-1"
-                behavior={Platform.OS === "ios" ? "padding" : "padding"}
+                style={{ flex: 1 }}
+                behavior={
+                    Platform.OS === "ios" ? "padding" : keyboardVisible
+                        ? "padding" : undefined
+                }
                 keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
             >
                 <ChatHeader
@@ -128,89 +139,52 @@ export default function ChatScreen() {
                     roomId={String(roomId)}
                     typing={isTyping}
                 />
-
-                <FlatList
-                    ref={flatListRef}
-                    data={messages}
-                    keyExtractor={(_, i) => i.toString()}
-                    contentContainerStyle={{
-                        padding: 20,
-                        gap: 12
-                    }}
-                    onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                    onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                    renderItem={({ item }) => (
-                        <ChatBubble
-                            message={item.message}
-                            username={item.username}
-                            mine={item.username === "You"}
-                        />
-                    )}
-                />
-
-                <View className="flex-row p-4 gap-3 items-center"
-
-                >
-                    <TextInput
-                        value={message}
-                        onChangeText={(text) => {
-                            setMessage(text);
-                            const trimmed = text.trim();
-
-                            if (trimmed.length === 0) {
-                                socket.emit(
-                                    SOCKET_EVENTS.TYPING_STOP,
-                                    roomId
-                                );
-                                setTypingSent(false);
-                                return;
-                            }
-
-                            if (!typingSent) {
-                                socket.emit(
-                                    SOCKET_EVENTS.TYPING_START,
-                                    roomId
-                                );
-                                setTypingSent(true);
-                            }
-
-                            if (typingTimeout.current) {
-                                clearTimeout(typingTimeout.current);
-                            }
-
-                            typingTimeout.current = setTimeout(() => {
-                                socket.emit(
-                                    SOCKET_EVENTS.TYPING_STOP,
-                                    roomId
-                                );
-                                setTypingSent(false);
-                            }, 1000);
-                        }}
-                        onBlur={() => {
-                            socket.emit(
-                                SOCKET_EVENTS.TYPING_STOP,
-                                roomId
-                            );
-                        }}
-                        placeholder="Message..."
-                        placeholderTextColor={"#666"}
+                <View className="flex-1">
+                    <FlatList
+                        ref={flatListRef}
+                        data={messages}
+                        keyExtractor={(_, i) => i.toString()}
                         style={{
-                            backgroundColor: COLORS.card,
-                            borderColor: COLORS.border,
-                            color: COLORS.text
+                            flex: 1
                         }}
-                        className="flex-1 rounded-xl px-4 py-3.5 border"
-                        multiline={false}
+                        contentContainerStyle={{
+                            paddingHorizontal: 20,
+                            paddingTop: 20,
+                            paddingBottom: 20,
+                            gap: 12,
+                        }}
+                        onContentSizeChange={() => {
+                            setTimeout(() => {
+                                flatListRef.current?.scrollToEnd({
+                                    animated: true
+                                })
+                            }, 50)
+                        }}
+                        renderItem={({ item }) => (
+                            <ChatBubble
+                                message={item.message}
+                                username={item.username}
+                                mine={item.username === "You"}
+                                timestamp={item.timestamp}
+                            />
+                        )}
                     />
-                    <Pressable
-                        onPress={send}
-                        style={{ backgroundColor: COLORS.primary }}
-                        disabled={!socket.connected}
-                        className="h-[42px] px-6 rounded-xl justify-center items-center active:opacity-80"
-                    >
-                        <Text className="font-semibold" style={{ color: COLORS.text }}>Send</Text>
-                    </Pressable>
                 </View>
+
+                <ChatInput roomId={String(roomId)} onSend={(message) => {
+                    socket.emit(
+                        SOCKET_EVENTS.SEND_MESSAGE,
+                        {
+                            roomId, message
+                        }
+                    );
+                    setMessages(prev => [...prev, {
+                        username: "You",
+                        message,
+                        timestamp: Date.now()
+                    }]);
+                }}
+                />
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
