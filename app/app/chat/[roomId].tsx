@@ -5,7 +5,7 @@ import { SOCKET_EVENTS } from "@/constants/events";
 import { socket } from "@/services/socket";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState, useRef } from "react";
-import { FlatList, Pressable, Text, TextInput, View, KeyboardAvoidingView, Platform, Keyboard } from "react-native";
+import { FlatList, View, KeyboardAvoidingView, Platform, Keyboard } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics"
 import ChatInput from "@/components/chat/ChatInput";
@@ -19,7 +19,6 @@ type Message = {
 export default function ChatScreen() {
 
     const { roomId } = useLocalSearchParams();
-    const [message, setMessage] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [isTyping, setIsTyping] = useState(false)
     const [memberCount, setMemberCount] = useState(1);
@@ -27,11 +26,15 @@ export default function ChatScreen() {
 
     const flatListRef = useRef<FlatList>(null);
 
-    const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
-
     useEffect(() => {
         const receive = async (data: Message) => {
             setMessages(prev => [...prev, data]);
+
+            setTimeout(() => {
+                flatListRef.current?.scrollToEnd({
+                    animated: true
+                })
+            }, 100);
 
             await Haptics.impactAsync(
                 Haptics.ImpactFeedbackStyle.Light
@@ -77,38 +80,6 @@ export default function ChatScreen() {
         };
     }, []);
 
-    const send = () => {
-        if (!message.trim()) return;
-
-        const payload = {
-            roomId,
-            message
-        };
-
-        socket.emit(SOCKET_EVENTS.SEND_MESSAGE, payload);
-
-        socket.emit(SOCKET_EVENTS.TYPING_STOP, roomId)
-
-        setMessages(prev => [
-            ...prev,
-            {
-                username: "You",
-                message,
-                timestamp: Date.now()
-            }
-        ]);
-
-        setMessage("");
-    };
-
-    useEffect(() => {
-        return () => {
-            if (typingTimeout.current) {
-                clearTimeout(typingTimeout.current)
-            }
-        }
-    }, [])
-
     useEffect(() => {
         const show = Keyboard.addListener("keyboardDidShow", () => {
             setKeyboardVisible(true)
@@ -153,13 +124,6 @@ export default function ChatScreen() {
                             paddingBottom: 20,
                             gap: 12,
                         }}
-                        onContentSizeChange={() => {
-                            setTimeout(() => {
-                                flatListRef.current?.scrollToEnd({
-                                    animated: true
-                                })
-                            }, 50)
-                        }}
                         renderItem={({ item }) => (
                             <ChatBubble
                                 message={item.message}
@@ -183,6 +147,11 @@ export default function ChatScreen() {
                         message,
                         timestamp: Date.now()
                     }]);
+                    setTimeout(() => {
+                        flatListRef.current?.scrollToEnd({
+                            animated: true
+                        })
+                    }, 100);
                 }}
                 />
             </KeyboardAvoidingView>

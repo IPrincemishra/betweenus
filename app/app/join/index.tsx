@@ -5,6 +5,7 @@ import UsernameInput from "../../components/UsernameInput";
 import { socket } from "../../services/socket";
 import { SOCKET_EVENTS } from "../../constants/events";
 import { useSessionStore } from "../../stores/useSessionStore";
+import { COLORS } from "@/constants/colors";
 
 
 export default function JoinScreen() {
@@ -106,7 +107,17 @@ export default function JoinScreen() {
     };
 
     return (
-        <View className="flex-1 bg-zinc-950 px-6 justify-center gap-6">
+        <View className="flex-1 px-6 justify-center gap-6" style={{ backgroundColor: COLORS.background }}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} pointerEvents="none" className="overflow-hidden">
+                <View
+                    className="absolute -top-[10%] -right-[15%] w-[320px] h-[320px] rounded-full opacity-[0.08] blur-[80px]"
+                    style={{ backgroundColor: COLORS.primary }}
+                />
+                <View
+                    className="absolute bottom-[25%] -left-[20%] w-[300px] h-[300px] rounded-full opacity-[0.03] blur-[90px]"
+                    style={{ backgroundColor: COLORS.primaryLight }}
+                />
+            </View>
             <Text className="text-white text-3xl font-bold">
                 Join Chat
             </Text>

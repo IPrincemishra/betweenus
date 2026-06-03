@@ -11,7 +11,6 @@ export default function Screen({ children }: Props) {
         <View style={{
             flex: 1,
             backgroundColor: COLORS.background,
-            paddingHorizontal: 24
         }}>
             {children}
         </View>
