@@ -1,7 +1,7 @@
-import { Image, Linking, Pressable, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "@/constants/colors";
 import { Feather } from "@expo/vector-icons";
+import { Image, Linking, Pressable, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Settings() {
     return (

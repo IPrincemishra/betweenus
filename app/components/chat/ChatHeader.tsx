@@ -1,19 +1,18 @@
 import { COLORS } from "@/constants/colors";
 import { socket } from "@/services/socket";
-import * as Clipboard from "expo-clipboard"
+import { Feather, Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, Share, Text, View } from "react-native";
-import { Feather, Ionicons } from "@expo/vector-icons"
 
 type Props = {
-    username?: string;
     roomId: string;
     online: boolean;
     typing: boolean
 }
 
-export default function ChatHeader({ online, roomId, typing, username }: Props) {
+export default function ChatHeader({ online, roomId, typing }: Props) {
 
     const [copied, setCopied] = useState(false)
 
@@ -25,7 +24,11 @@ export default function ChatHeader({ online, roomId, typing, username }: Props) 
 
     const shareRoom = async () => {
         await Share.share({
-            message: `Join my private chat: betweenus://join/${roomId}`
+            message:
+                `Join me on BetweenUs 💬
+                Room ID: ${roomId}
+                Open:
+                betweenus://join/${roomId}`
         })
     }
 
@@ -76,7 +79,9 @@ export default function ChatHeader({ online, roomId, typing, username }: Props) 
                 <Pressable
                     onPress={() => {
                         socket.disconnect();
-                        router.replace("/");
+                        setTimeout(() => {
+                            router.replace("/")
+                        }, 100)
                     }}
                     style={{ backgroundColor: `${COLORS.danger}15` }}
                     className="h-10 px-4 rounded-xl flex-row items-center gap-1.5 active:opacity-70"

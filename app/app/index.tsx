@@ -1,5 +1,5 @@
 import { COLORS } from "@/constants/colors";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Image, Pressable, Text, View } from "react-native";
 

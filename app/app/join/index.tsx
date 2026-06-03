@@ -1,11 +1,11 @@
-import { View, Text, TextInput, Pressable, Alert } from "react-native";
-import { useEffect, useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
-import UsernameInput from "../../components/UsernameInput";
-import { socket } from "../../services/socket";
-import { SOCKET_EVENTS } from "../../constants/events";
-import { useSessionStore } from "../../stores/useSessionStore";
 import { COLORS } from "@/constants/colors";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import UsernameInput from "../../components/UsernameInput";
+import { SOCKET_EVENTS } from "../../constants/events";
+import { socket } from "../../services/socket";
+import { useSessionStore } from "../../stores/useSessionStore";
 
 
 export default function JoinScreen() {

@@ -1,14 +1,14 @@
 import ChatBubble from "@/components/chat/ChatBubble";
 import ChatHeader from "@/components/chat/ChatHeader";
+import ChatInput from "@/components/chat/ChatInput";
 import { COLORS } from "@/constants/colors";
 import { SOCKET_EVENTS } from "@/constants/events";
 import { socket } from "@/services/socket";
+import * as Haptics from "expo-haptics";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState, useRef } from "react";
-import { FlatList, View, KeyboardAvoidingView, Platform, Keyboard } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { FlatList, Keyboard, KeyboardAvoidingView, Platform, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Haptics from "expo-haptics"
-import ChatInput from "@/components/chat/ChatInput";
 
 type Message = {
     username: string;
@@ -132,6 +132,39 @@ export default function ChatScreen() {
                                 timestamp={item.timestamp}
                             />
                         )}
+                        ListEmptyComponent={
+                            <View
+                                style={{
+                                    flex: 1,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    paddingTop: 120
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        fontSize: 22,
+                                        fontWeight: "700",
+                                        color: COLORS.text
+                                    }}
+                                >
+                                    Start your conversation
+                                </Text>
+                                <Text
+                                    style={{
+                                        marginTop: 12,
+                                        color: COLORS.muted,
+                                        textAlign: "center",
+                                        paddingHorizontal: 40
+                                    }}
+                                >
+                                    {
+                                        memberCount >= 2 ?
+                                            "Say hello 👋" : "Waiting for someone to join..."
+                                    }
+                                </Text>
+                            </View>
+                        }
                     />
                 </View>
 

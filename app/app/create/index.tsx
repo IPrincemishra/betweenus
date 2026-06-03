@@ -1,12 +1,12 @@
-import { View, Text, Pressable, Alert } from "react-native";
-import { useEffect, useState } from "react";
-import { router } from "expo-router";
-import UsernameInput from "../../components/UsernameInput";
-import { socket } from "../../services/socket";
-import { SOCKET_EVENTS } from "../../constants/events";
-import { useSessionStore } from "../../stores/useSessionStore";
 import Screen from "@/components/ui/Screen";
 import { COLORS } from "@/constants/colors";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { Alert, Pressable, Text, View } from "react-native";
+import UsernameInput from "../../components/UsernameInput";
+import { SOCKET_EVENTS } from "../../constants/events";
+import { socket } from "../../services/socket";
+import { useSessionStore } from "../../stores/useSessionStore";
 export default function CreateScreen() {
 
     const [username, setUsername] = useState("");
