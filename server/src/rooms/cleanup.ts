@@ -6,7 +6,6 @@ const INACTIVITY_TIMEOUT = 60 * 60 * 1000;
 
 export const startRoomCleanup = () => {
     setInterval(() => {
-        console.log("Running cleanup...");
         const now = Date.now()
 
         const roomIds = getAllRoomIds()
@@ -25,9 +24,8 @@ export const startRoomCleanup = () => {
                 const shouldDestroy = (room.users.length === 0 && room.reservedSlots.length === 0) || isInactive;
 
                 if (shouldDestroy) {
-
                     deleteRoom(roomId)
-                    console.log(`Destroyed room: ${roomId}`);
+                    console.log(`[ROOM] Deleted: ${roomId}`);
                 }
             }
         )

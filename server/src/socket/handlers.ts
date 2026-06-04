@@ -7,7 +7,7 @@ import { clearSocketLimits, isRateLimited } from "../utils/rateLimiter";
 import { SOCKET_EVENTS } from "../constants/events";
 
 export const registerSocketHandlers = (socket: Socket) => {
-    console.log("User connected: ", socket.id);
+    console.log(`[SOCKET] Connected: ${socket.id}`);
 
     socket.on(SOCKET_EVENTS.SET_USERNAME, (username: string) => {
 
@@ -99,9 +99,21 @@ export const registerSocketHandlers = (socket: Socket) => {
 
         socket.join(roomId)
 
-        socket.emit(SOCKET_EVENTS.ROOM_JOINED, roomId)
+        socket.emit(SOCKET_EVENTS.ROOM_JOINED, roomId);
 
-        socket.to(roomId).emit(SOCKET_EVENTS.USER_ONLINE)
+        const updatedRoom = getRoom(roomId);
+
+        const count = updatedRoom?.users.length ?? 1;
+
+        socket.emit(
+            SOCKET_EVENTS.USER_ONLINE,
+            count
+        );
+
+        socket.to(roomId).emit(
+            SOCKET_EVENTS.USER_ONLINE,
+            count
+        );
     })
 
     socket.on(SOCKET_EVENTS.SEND_MESSAGE, ({ roomId, message }) => {
@@ -148,7 +160,19 @@ export const registerSocketHandlers = (socket: Socket) => {
             reserveSlot(user.roomId, user.username)
             removeUserFromRoom(user.roomId, socket.id)
 
-            socket.to(user.roomId).emit(SOCKET_EVENTS.USER_OFFLINE)
+            const room = getRoom(user.roomId);
+
+            const count = room?.users.length ?? 0;
+
+            socket.emit(
+                SOCKET_EVENTS.USER_OFFLINE,
+                count
+            );
+
+            socket.to(user.roomId).emit(
+                SOCKET_EVENTS.USER_OFFLINE,
+                count
+            );
         }
     })
 
@@ -157,6 +181,6 @@ export const registerSocketHandlers = (socket: Socket) => {
 
         clearSocketLimits(socket.id)
 
-        console.log("User disconnected:", socket.id);
+        console.log(`[SOCKET] Disconnected: ${socket.id}`);
     });
 };

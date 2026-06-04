@@ -12,18 +12,16 @@ export const addUser = (user: UserSession) => {
 
     users.set(user.socketId, user)
 
-    console.log("User added");
-    console.log(users);
-
+    console.log(`[USER] Added: ${user.username} | Total: ${users.size}`);
 
 }
 
 export const removeUser = (socketId: string) => {
+    const user = users.get(socketId);
+
     users.delete(socketId)
 
-    console.log("User Removed");
-    console.log(users);
-
+    console.log(`[USER] Removed: ${user?.username ?? "unknown"} | Total: ${users.size}`);
 
 }
 

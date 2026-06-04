@@ -19,7 +19,6 @@ export const createRoom = (roomId: string, ownerUsername: string) => {
 
     rooms.set(roomId, room)
 
-    return room
 }
 
 export const getRoom = (roomId: string) => {
@@ -70,11 +69,8 @@ export const canJoinReservedSlot = (roomId: string, username: string) => {
     )
 
     if (!reserved) {
-        const activeUsers = room.users.length;
 
-        const reservedSeats = room.reservedSlots.length;
-
-        const occupiedSeats = activeUsers + reservedSeats;
+        const occupiedSeats = room.users.length + room.reservedSlots.length;
 
         return (
             occupiedSeats < room.maxUsers
@@ -104,8 +100,7 @@ export const removeUserFromRoom = (
 
     if (room.users.length === 0) {
         rooms.delete(roomId)
-        console.log(`Destroyed room: ${roomId}`
-        );
+        console.log(`[ROOM] Deleted: ${roomId}`);
     }
 }
 
