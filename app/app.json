@@ -12,9 +12,9 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.princemishra.betweenus",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png"
-        // "backgroundColor": "",
       },
       "edgeToEdgeEnabled": true
     },
