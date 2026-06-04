@@ -1,20 +1,27 @@
 import Screen from "@/components/ui/Screen";
 import { COLORS } from "@/constants/colors";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
 import UsernameInput from "../../components/UsernameInput";
 import { SOCKET_EVENTS } from "../../constants/events";
 import { socket } from "../../services/socket";
 import { useSessionStore } from "../../stores/useSessionStore";
+import { Feather } from "@expo/vector-icons";
 export default function CreateScreen() {
 
     const [username, setUsername] = useState("");
+    const [loading, setLoading] = useState(false)
 
     const {
         setUsername: saveUsername,
         setRoomId
     } = useSessionStore();
+
+    const usernameRef = useRef(username);
+    useEffect(() => {
+        usernameRef.current = username;
+    }, [username]);
 
     useEffect(() => {
         const onSuccess = () => {
@@ -23,9 +30,11 @@ export default function CreateScreen() {
             )
         };
         const onError = (msg: string) => {
+            setLoading(false)
             Alert.alert(msg)
         };
         const onRoomCreated = (data: any) => {
+            setLoading(false)
             saveUsername(username);
             setRoomId(data.roomId);
             router.replace(`/chat/${data.roomId}`);
@@ -63,9 +72,7 @@ export default function CreateScreen() {
 
         };
 
-    }, [
-        username
-    ]);
+    }, []);
 
     const createRoom = () => {
 
@@ -73,6 +80,7 @@ export default function CreateScreen() {
             Alert.alert("Enter username");
             return;
         }
+        setLoading(true)
         if (!socket.connected) {
             socket.connect();
         }
@@ -105,12 +113,23 @@ export default function CreateScreen() {
                     onChange={setUsername}
                 />
                 <Pressable
-                    className="bg-white rounded-2xl p-5"
+                    style={{
+                        backgroundColor: loading ? `${COLORS.primary}80` : COLORS.primary,
+                    }}
+                    disabled={loading}
+                    className="w-full h-[56px] rounded-2xl flex-row justify-center items-center gap-2 active:scale-[0.98] transition-transform shadow-md disabled:opacity-90"
                     onPress={createRoom}
                 >
-                    <Text className="text-center font-semibold">
-                        Create Room
-                    </Text>
+                    {loading ? (
+                        <ActivityIndicator size="small" color={COLORS.text} />
+                    ) : (
+                        <>
+                            <Feather name="plus" color={COLORS.text} size={18} />
+                            <Text style={{ color: COLORS.text }} className="font-bold text-base tracking-wide">
+                                Create Room
+                            </Text>
+                        </>
+                    )}
                 </Pressable>
             </View>
         </Screen>

@@ -1,11 +1,12 @@
 import { COLORS } from "@/constants/colors";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from "react-native";
 import UsernameInput from "../../components/UsernameInput";
 import { SOCKET_EVENTS } from "../../constants/events";
 import { socket } from "../../services/socket";
 import { useSessionStore } from "../../stores/useSessionStore";
+import { Feather } from "@expo/vector-icons";
 
 
 export default function JoinScreen() {
@@ -14,11 +15,15 @@ export default function JoinScreen() {
 
     const [username, setUsername] = useState("");
     const [roomId, setRoomId] = useState(params.roomId ?? "");
+    const [loading, setLoading] = useState(false);
 
     const {
         setUsername: saveUsername,
         setRoomId: saveRoomId
     } = useSessionStore();
+
+    const usernameRef = useRef(username)
+    const roomIdRef = useRef(roomId)
 
     useEffect(() => {
         const usernameSuccess = () => {
@@ -29,16 +34,14 @@ export default function JoinScreen() {
         };
 
         const roomJoined = (joinedRoom: string) => {
-            saveUsername(
-                username
-            );
-            saveRoomId(
-                joinedRoom
-            );
+            setLoading(false)
+            saveUsername(username);
+            saveRoomId(joinedRoom);
             router.replace(`/chat/${joinedRoom}`)
         };
 
         const roomError = (msg: string) => {
+            setLoading(false)
             Alert.alert(msg)
         };
 
@@ -84,7 +87,7 @@ export default function JoinScreen() {
 
         };
 
-    }, [username, roomId]);
+    }, []);
 
     const joinRoom = () => {
 
@@ -96,7 +99,7 @@ export default function JoinScreen() {
             Alert.alert("Enter room id");
             return;
         }
-
+        setLoading(true)
         if (!socket.connected) {
             socket.connect();
         }
@@ -133,12 +136,23 @@ export default function JoinScreen() {
                 className="bg-zinc-900 text-white rounded-2xl px-5 py-4 border border-zinc-800"
             />
             <Pressable
-                className="bg-white rounded-2xl p-5"
+                style={{
+                    backgroundColor: loading ? `${COLORS.primary}80` : COLORS.primary,
+                }}
+                disabled={loading}
+                className="w-full h-[56px] rounded-2xl flex-row justify-center items-center gap-2 active:scale-[0.98] transition-transform shadow-md"
                 onPress={joinRoom}
             >
-                <Text className="text-center font-semibold">
-                    Join Room
-                </Text>
+                {loading ? (
+                    <ActivityIndicator size="small" color={COLORS.text} />
+                ) : (
+                    <>
+                        <Feather name="log-in" color={COLORS.text} size={18} />
+                        <Text style={{ color: COLORS.text }} className="font-bold text-base tracking-wide">
+                            Join Room
+                        </Text>
+                    </>
+                )}
             </Pressable>
         </View>
     )
