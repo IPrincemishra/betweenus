@@ -35,9 +35,9 @@ export default function CreateScreen() {
         };
         const onRoomCreated = (data: any) => {
             setLoading(false)
-            saveUsername(username);
+            saveUsername(usernameRef.current);
             setRoomId(data.roomId);
-            router.replace(`/chat/${data.roomId}`);
+            router.replace(`/chat/${data.roomId}?creator=true`);
         };
 
         socket.on(

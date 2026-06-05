@@ -18,10 +18,10 @@ type Message = {
 
 export default function ChatScreen() {
 
-    const { roomId } = useLocalSearchParams();
+    const { roomId, creator } = useLocalSearchParams();
     const [messages, setMessages] = useState<Message[]>([]);
     const [isTyping, setIsTyping] = useState(false)
-    const [memberCount, setMemberCount] = useState(1);
+    const [memberCount, setMemberCount] = useState(creator === "true" ? 1 : 2);
     const [keyboardVisible, setKeyboardVisible] = useState(false);
 
     const flatListRef = useRef<FlatList>(null);
@@ -49,12 +49,12 @@ export default function ChatScreen() {
             setIsTyping(false)
         }
 
-        const userOnline = (count: number) => {
-            setMemberCount(count)
+        const userOnline = () => {
+            setMemberCount(2)
         }
 
-        const userOffline = (count: number) => {
-            setMemberCount(count)
+        const userOffline = () => {
+            setMemberCount(1)
         }
 
         socket.on(SOCKET_EVENTS.RECEIVE_MESSAGE, receive);
