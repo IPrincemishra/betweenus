@@ -98,10 +98,6 @@ export const removeUserFromRoom = (
 
     room.lastActivity = Date.now()
 
-    if (room.users.length === 0) {
-        rooms.delete(roomId)
-        console.log(`[ROOM] Deleted: ${roomId}`);
-    }
 }
 
 export const deleteRoom = (roomId: string) => {
